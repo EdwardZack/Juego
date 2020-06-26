@@ -53,7 +53,9 @@ function asignarEventos(){
         numColNext = i+1;
         $k('.col-'+i).sortable({
           update: function(){
+            actualizarMovimientos();
             asignarEventos();
+            borrarDulces();
           }
         });
         $k('.col-'+i+' img:nth-child('+j+')').droppable({
@@ -67,7 +69,9 @@ function asignarEventos(){
         $k('.col-'+numColNext+' img:nth-child('+j+')').addClass('item'+i+j);
         $k('.col-'+i).sortable({
           update: function(){
+            actualizarMovimientos();
             asignarEventos();
+            borrarDulces();
           }
         });
         $k('.col-'+i+' img:nth-child('+j+')').droppable({
@@ -78,7 +82,9 @@ function asignarEventos(){
         numColPrev = i-1;
         $k('.col-'+i).sortable({
           update: function(){
+            actualizarMovimientos();
             asignarEventos();
+            borrarDulces();
           }
         });
         $k('.col-'+i+' img:nth-child('+j+')').droppable({
@@ -233,6 +239,44 @@ function validarFilas(){
   }
 }
 
+
+function marcarDulces(totalDulces){
+  for(i=0; i<totalDulces.length; i++){
+    totalDulces[i].addClass('borrar');
+  }
+}
+
+function borrarDulces(){
+  validarColumnas();
+  validarFilas();
+  if($k('.borrar').length != 0){
+  deshabilitarSorDrop();
+    $k('.borrar').effect({
+      effect: 'pulsate',
+      duration: 1000,
+      complete: function(){
+        $k(this).remove();
+        asignarEventos();
+      }
+    });
+
+    setTimeout(function(){
+      reeplazarDulces();
+    },1500);
+  }
+}
+
+function cargarTablero(){
+  for(var i=1; i<8; i++){
+    $k('.panel-tablero div:nth-child('+i+')').html(cargarImagenes());
+  }
+  $k('.panel-tablero div').disableSelection();
+  $k('#score-text').text('0');
+  addClassElemento();
+  asignarEventos();
+  borrarDulces();
+}
+
 function sumarPuntos(totalDulces){
   var totalLinea = totalDulces.length;
   var totalPuntos = Number($k('#score-text').text());
@@ -255,29 +299,23 @@ function sumarPuntos(totalDulces){
   $k('#score-text').text(totalPuntos);
 }
 
-function marcarDulces(totalDulces){
-  for(i=0; i<totalDulces.length; i++){
-    totalDulces[i].addClass('borrar');
+function reeplazarDulces(){
+  for(var i=1; i<8; i++){
+    var colDulces = $k('.col-'+i);
+    var countDulces = colDulces.children().length;
+    var faltantes = dulcesColumna-countDulces;
+    for(var j=0; j<faltantes; j++){
+      var index = Math.floor(Math.random() * dulces.length);
+      var dulceSeleccionado = dulces[index];
+      if(j == 0 && countDulces < 1){
+        $k(colDulces).append(dulceSeleccionado);
+      } else {
+        $k(colDulces).find('img:eq(0)').before(dulceSeleccionado);
+      }
+    }
   }
-}
-
-function borrarDulces(){
-  validarColumnas();
-  validarFilas();
-  if($k('.borrar').length !=0){
-    $k('.borrar').remove();
-    asignarEventos();
-  }
-}
-
-function cargarTablero(){
-  for(var i = 1; i<8; i++){
-    $k('.panel-tablero div:nth-child('+i+')').html(cargarImagenes());
-  }
-  $k('.panel-tablero div').disableSelection();
-  $k('#score-text').text('0');
-  addClassElemento();
   asignarEventos();
+  borrarDulces();
 }
 
 function intercambiarDulces(event, imgDrag){
@@ -287,17 +325,40 @@ function intercambiarDulces(event, imgDrag){
   var rutaImgDrop = imgDrop.attr('src');
   imgDrag.attr('src', rutaImgDrop);
   imgDrop.attr('src', rutaImgDrag);
+  actualizarMovimientos();
+  setTimeout(function(){
+    reeplazarDulces();
+  },500);
 }
 
 function addClassElemento(){
   $k('.panel-tablero div').children().removeClass().addClass('elemento');
 }
 
+function actualizarMovimientos(){
+  var totalMovimientos = Number($k('#movimientos-text').text());
+  totalMovimientos++;
+  $k('#movimientos-text').text(totalMovimientos);
+}
+
+function iniciarJuego(){
+  cargarTablero();
+}
+
+function terminarJuego(){
+  $k('.panel-tablero, .time').hide('slide');
+}
+
 $k(function(){
   colorMatch($k(".main-titulo"));
-  cargarTablero();
-  borrarDulces();
-  $k('.btn-reinicio').click(function(){
-    $k('#timer').startTimer();
-  });
+  $k('.btn-reinicio').click(function () {
+		if ($k(this).text() === 'Reiniciar') {
+			location.reload(true);
+		}
+    iniciarJuego();
+		$k(this).text('Reiniciar');
+		$k('#timer').startTimer({
+			onComplete: terminarJuego
+		})
+	});
 })
