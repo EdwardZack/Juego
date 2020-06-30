@@ -1,12 +1,13 @@
 var $k = jQuery.noConflict();
 
+//función para cambiar el color del titulo del juego, llama a colorMatchReturn para alternar entre colores.
 function colorMatch(elemento){
   $k(elemento).animate({
      color: "#ffffff"
    },1000, function(){
      colorMatchReturn(elemento)
    }
-  )
+ ).delay(1000)
 }
 
 function colorMatchReturn(elemento){
@@ -18,6 +19,7 @@ function colorMatchReturn(elemento){
   )
 }
 
+//arreglo que almacena las imagenes de los dulces.
 var dulces = new Array(3);
 dulces[0]="<img src='./image/1.png'>";
 dulces[1]="<img src='./image/2.png'>";
@@ -25,6 +27,7 @@ dulces[2]="<img src='./image/3.png'>";
 dulces[3]="<img src='./image/4.png'>";
 var dulcesColumna = 7;
 
+//genera arreglos de 7 elementos aleatoriamente y los retorna.
 function imagenesAleatorias(){
   var dulcesAleatorios = [];
   for(var i = 0; i<dulcesColumna; i++){
@@ -36,6 +39,7 @@ function imagenesAleatorias(){
   return dulcesAleatorios;
 }
 
+//toma los arreglos retornados por la función anterior y los convierte en una cadena de texto.
 function cargarImagenes(){
   var dulcesAleatorios = imagenesAleatorias();
   var listarDulces="";
@@ -45,6 +49,7 @@ function cargarImagenes(){
   return listarDulces;
 }
 
+//asigna los eventos sortable y droppable para las columnas e imagenes respectivamente.
 function asignarEventos(){
   addClassElemento();
   for(var i=1; i<8; i++){
@@ -65,6 +70,7 @@ function asignarEventos(){
       } else if(i>1 && i<7){
         numColPrev = i-1;
         numColNext = i+1;
+        //asigna a cada imagen una clase que le indica sobre cuales imagenes puede ser arrastrada.
         $k('.col-'+numColPrev+' img:nth-child('+j+')').addClass('item'+i+j);
         $k('.col-'+numColNext+' img:nth-child('+j+')').addClass('item'+i+j);
         $k('.col-'+i).sortable({
@@ -97,6 +103,7 @@ function asignarEventos(){
   habilitarSorDrop();
 }
 
+//habilita los metodos de sortable y droppable de las imagenes.
 function habilitarSorDrop(){
   for(var i=1; i<8; i++){
     $k('.col-'+i).sortable('enable');
@@ -104,6 +111,7 @@ function habilitarSorDrop(){
   $k('img').droppable('enable');
 }
 
+//deshabilita los metodos de sortable y droppable de las imagenes.
 function deshabilitarSorDrop(){
   for(var i=1; i<8; i++){
     $k('.col-'+i).sortable('disable');
@@ -111,6 +119,7 @@ function deshabilitarSorDrop(){
   $k('img').droppable('disable');
 }
 
+//función que almacena todos los dulces en una matriz para ser recorrida por las funciones de validación.
 function generarMatrizDulces(){
   var matrizDulces = [];
 
@@ -121,6 +130,7 @@ function generarMatrizDulces(){
   return matrizDulces;
 }
 
+//recorre la matriz de dulces por columnas para encontrar combinaciones de dulces.
 function validarColumnas(){
   var totalColDulces = [];
   for(var i=0; i<7; i++){
@@ -181,6 +191,7 @@ function validarColumnas(){
   }
 }
 
+//recorre la matriz de dulces por filas para encontrar combinaciones de dulces.
 function validarFilas(){
   var totalRowDulces = [];
   for(var i=0; i<7; i++){
@@ -239,18 +250,19 @@ function validarFilas(){
   }
 }
 
-
+//toma las combinaciones encontradas y las marca con la clase "borrar" para eliminar posteriormente los dulces.
 function marcarDulces(totalDulces){
   for(i=0; i<totalDulces.length; i++){
     totalDulces[i].addClass('borrar');
   }
 }
 
+//función que lllama las funciones que buscan y marcan las combinaciones de dulces y los elimina.
 function borrarDulces(){
   validarColumnas();
   validarFilas();
   if($k('.borrar').length != 0){
-  deshabilitarSorDrop();
+  deshabilitarSorDrop(); //deshabilita el sortable y el droppable mientras se eliminan los dulces.
     $k('.borrar').effect({
       effect: 'pulsate',
       duration: 1000,
@@ -260,12 +272,13 @@ function borrarDulces(){
       }
     });
 
-    setTimeout(function(){
+    setTimeout(function(){ //llama la función que reemplaza los dulces eliminados.
       reeplazarDulces();
     },1500);
   }
 }
 
+//función que carga inicialmente el tablero y llama las funciones correspondientes de asignarEventos y borrarDulces.
 function cargarTablero(){
   for(var i=1; i<8; i++){
     $k('.panel-tablero div:nth-child('+i+')').html(cargarImagenes());
@@ -277,6 +290,7 @@ function cargarTablero(){
   borrarDulces();
 }
 
+//función que suma los puntos dependiendo de la cantidad de dulces encontrados en linea.
 function sumarPuntos(totalDulces){
   var totalLinea = totalDulces.length;
   var totalPuntos = Number($k('#score-text').text());
@@ -299,6 +313,7 @@ function sumarPuntos(totalDulces){
   $k('#score-text').text(totalPuntos);
 }
 
+//función que reemplaza los dulces eliminados.
 function reeplazarDulces(){
   for(var i=1; i<8; i++){
     var colDulces = $k('.col-'+i);
@@ -318,6 +333,7 @@ function reeplazarDulces(){
   borrarDulces();
 }
 
+//función que se ejecuta activarse el evento droppable de las imagenes.
 function intercambiarDulces(event, imgDrag){
   var imgDrag = $k(imgDrag.draggable);
   var rutaImgDrag = imgDrag.attr('src');
@@ -331,34 +347,53 @@ function intercambiarDulces(event, imgDrag){
   },500);
 }
 
+//reinicia todas las clases de las imagenes y reasigna la clase elemento para que no pierdan la forma.
 function addClassElemento(){
   $k('.panel-tablero div').children().removeClass().addClass('elemento');
 }
 
+//suma un movimiento con cada interacción del usuario.
 function actualizarMovimientos(){
   var totalMovimientos = Number($k('#movimientos-text').text());
   totalMovimientos++;
   $k('#movimientos-text').text(totalMovimientos);
 }
 
+//inicializa el juego cargando el tablero y personalizando el temporizador.
 function iniciarJuego(){
   cargarTablero();
+  $k('.jst-hours').hide();
+  $k('#timer').css({
+    'text-align': 'center',
+    'display': 'flex',
+    'justify-content': 'center'
+  });
+  $k('.jst-minutes').css('float', 'left');
+  $k('.jst-seconds').css('float', 'left');
 }
 
+//función que modifica el juego al acabarse el tiempo ocultando el tablero y dejando puntaje y movimientos totales.
 function terminarJuego(){
-  $k('.panel-tablero, .time').hide('slide');
+  $k('.time').remove();
+  $k('.panel-tablero').hide('slide', function(){
+    $k('.panel-score').animate({
+      width: "+=75%"
+    }, 1000)
+  });
+  $k('div.score').before('<h1 class="main-titulo titulo-over">Juego Terminado</h1>');
 }
 
+//Inicialmente se carga la animación del titulo y el evento click del botón de inicio.
 $k(function(){
   colorMatch($k(".main-titulo"));
   $k('.btn-reinicio').click(function () {
 		if ($k(this).text() === 'Reiniciar') {
 			location.reload(true);
 		}
-    iniciarJuego();
 		$k(this).text('Reiniciar');
 		$k('#timer').startTimer({
 			onComplete: terminarJuego
 		})
+    iniciarJuego();
 	});
 })
